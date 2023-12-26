@@ -1,0 +1,164 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/link/v1.0", import: ["@link"])
+  @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@shareable"])
+{
+  query: Query
+  mutation: Mutation
+}
+
+directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
+
+directive @key(fields: federation__FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+
+directive @federation__requires(fields: federation__FieldSet!) on FIELD_DEFINITION
+
+directive @federation__provides(fields: federation__FieldSet!) on FIELD_DEFINITION
+
+directive @federation__external(reason: String) on OBJECT | FIELD_DEFINITION
+
+directive @federation__tag(name: String!) repeatable on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION | SCHEMA
+
+directive @federation__extends on OBJECT | INTERFACE
+
+directive @shareable repeatable on OBJECT | FIELD_DEFINITION
+
+directive @federation__inaccessible on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+
+directive @federation__override(from: String!) on FIELD_DEFINITION
+
+directive @federation__composeDirective(name: String) repeatable on SCHEMA
+
+directive @federation__interfaceObject on OBJECT
+
+type UserError
+  @shareable
+{
+  message: String!
+}
+
+enum ReservableDay {
+  Sunday
+  Monday
+  Tuesday
+  Wednesday
+  Thursday
+  Friday
+  Saturday
+}
+
+enum ReservableSession {
+  Breakfast
+  Morning
+  Lunch
+  Afternoon
+  Evening
+}
+
+enum ReservableType {
+  Equipment
+  Room
+}
+
+type Reservable
+  @key(fields: "id")
+{
+  id: ID!
+  name: String!
+  description: String!
+  type: ReservableType!
+  days: [ReservableDay!]!
+  sessions: [ReservableSession!]
+  reservations: [Reservation!]!
+}
+
+type ReservablePayload {
+  errors: [UserError!]
+  reservable: Reservable
+}
+
+input ReservableInput {
+  name: String!
+  description: String!
+  type: ReservableType!
+  days: [ReservableDay!]!
+  sessions: [ReservableSession!]!
+}
+
+type Query {
+  _entities(representations: [_Any!]!): [_Entity]!
+  _service: _Service!
+}
+
+extend type Query {
+  reservable(id: ID!): Reservable
+  reservables(ids: [ID!]): [Reservable!]
+  reservablesByType(type: ReservableType!): [Reservable!]
+  reservation(id: ID!): Reservation
+  reservations(ids: [ID!]): [Reservation!]
+}
+
+extend type Mutation {
+  reservableCreate(reservable: ReservableInput!): ReservablePayload
+  reservableUpdate(id: ID!, reservable: ReservableInput!): ReservablePayload
+  reservableDelete(id: ID!): ReservablePayload
+  reservationCreate(reservation: ReservationInput!): ReservationPayload
+  reservationUpdate(id: ID!, reservation: ReservationInput!): ReservationPayload
+  reservationDelete(id: ID!): ReservationPayload
+}
+
+type Reservation
+  @key(fields: "id")
+{
+  id: ID!
+  title: String!
+  description: String!
+  date: String!
+  reservable: Reservable!
+  session: ReservableSession!
+  user: User!
+}
+
+type ReservationPayload {
+  errors: [UserError!]
+  reservation: Reservation
+}
+
+input ReservationInput {
+  title: String!
+  description: String!
+  date: String!
+  reservableId: ID!
+  session: ReservableSession!
+  userId: ID!
+}
+
+type User
+  @key(fields: "id")
+{
+  id: ID!
+  reservations: [Reservation!]!
+}
+
+enum link__Purpose {
+  """
+  `SECURITY` features provide metadata necessary to securely resolve fields.
+  """
+  SECURITY
+
+  """
+  `EXECUTION` features provide metadata necessary for operation execution.
+  """
+  EXECUTION
+}
+
+scalar link__Import
+
+scalar federation__FieldSet
+
+scalar _Any
+
+type _Service {
+  sdl: String
+}
+
+union _Entity = Reservable | Reservation | User

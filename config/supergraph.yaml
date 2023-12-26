@@ -1,0 +1,10 @@
+federation_version: =2.3.2
+subgraphs:
+  reservations:
+    routing_url: http://reservations.bookings.svc.cluster.local:80/api/graphql
+    schema:
+      file: ../subgraphs/reservations.graphql
+  users:
+    routing_url: http://reservations.bookings.svc.cluster.local:80/api/graphql
+    schema:
+      file: ../subgraphs/users.graphql

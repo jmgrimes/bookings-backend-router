@@ -1,0 +1,143 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/link/v1.0", import: ["@link"])
+  @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@shareable"])
+{
+  query: Query
+  mutation: Mutation
+}
+
+directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
+
+directive @key(fields: federation__FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+
+directive @federation__requires(fields: federation__FieldSet!) on FIELD_DEFINITION
+
+directive @federation__provides(fields: federation__FieldSet!) on FIELD_DEFINITION
+
+directive @federation__external(reason: String) on OBJECT | FIELD_DEFINITION
+
+directive @federation__tag(name: String!) repeatable on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION | SCHEMA
+
+directive @federation__extends on OBJECT | INTERFACE
+
+directive @shareable repeatable on OBJECT | FIELD_DEFINITION
+
+directive @federation__inaccessible on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+
+directive @federation__override(from: String!) on FIELD_DEFINITION
+
+directive @federation__composeDirective(name: String) repeatable on SCHEMA
+
+directive @federation__interfaceObject on OBJECT
+
+type UserError
+  @shareable
+{
+  message: String!
+}
+
+"""Representation of a User of the Reservation System."""
+type User
+  @key(fields: "id")
+{
+  """
+  The ID value for the User.
+  Formatted as a 24 character hexadecimal ObjectId value.
+  """
+  id: ID!
+
+  """The first name of the User."""
+  firstName: String!
+
+  """The last name of the User."""
+  lastName: String!
+
+  """The email address of the User."""
+  emailAddress: String!
+
+  """The title of the User."""
+  title: String!
+
+  """The image of the User."""
+  image: String
+
+  """The notes for the User."""
+  notes: String
+}
+
+"""Input for the User part of User mutation operations."""
+input UserInput {
+  """The first name of the User."""
+  firstName: String!
+
+  """The last name of the User."""
+  lastName: String!
+
+  """The email address of the User."""
+  emailAddress: String!
+
+  """The title of the User."""
+  title: String!
+
+  """The image of the User."""
+  image: String
+
+  """The notes for the User."""
+  notes: String
+}
+
+type UserPayload {
+  """Errors encountered during a user mutation operation."""
+  errors: [UserError!]
+
+  """The User resulting from the user mutation operaiton."""
+  user: User
+}
+
+type Query {
+  _entities(representations: [_Any!]!): [_Entity]!
+  _service: _Service!
+}
+
+extend type Query {
+  """Retrieve a User by the user's ID value."""
+  user(id: ID!): User
+
+  """Retrieve all users."""
+  users(ids: [ID]): [User!]!
+}
+
+extend type Mutation {
+  """Create a new user represented by the input fields."""
+  userCreate(user: UserInput!): User!
+
+  """Update an existing user by the user's ID value with the input fields."""
+  userUpdate(id: ID!, user: UserInput!): User
+
+  """Delete an existing user by the user's ID value."""
+  userDelete(id: ID!): User
+}
+
+enum link__Purpose {
+  """
+  `SECURITY` features provide metadata necessary to securely resolve fields.
+  """
+  SECURITY
+
+  """
+  `EXECUTION` features provide metadata necessary for operation execution.
+  """
+  EXECUTION
+}
+
+scalar link__Import
+
+scalar federation__FieldSet
+
+scalar _Any
+
+type _Service {
+  sdl: String
+}
+
+union _Entity = User
